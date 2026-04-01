@@ -1,0 +1,22 @@
+{
+  "IN": {
+    "Wheat": {"avg_yield_quintal_per_acre": 18, "range": [14, 24], "season": "Rabi", "factors": "Irrigation adds 30-40%. Black soil +15%. Timely sowing +10%."},
+    "Rice": {"avg_yield_quintal_per_acre": 22, "range": [16, 30], "season": "Kharif", "factors": "SRI method +25%. Proper water management critical."},
+    "Cotton": {"avg_yield_quintal_per_acre": 8, "range": [5, 14], "season": "Kharif", "factors": "Bt cotton +40%. Drip irrigation +20%. Pest management critical."},
+    "Soybean": {"avg_yield_quintal_per_acre": 10, "range": [7, 15], "season": "Kharif", "factors": "Rhizobium treatment +15%. Proper spacing important."},
+    "Tomato": {"avg_yield_quintal_per_acre": 100, "range": [60, 200], "season": "All", "factors": "Staking +30%. Drip irrigation +25%. Disease management critical."},
+    "Chickpea": {"avg_yield_quintal_per_acre": 8, "range": [5, 12], "season": "Rabi", "factors": "Wilt-resistant variety +20%. One irrigation at flowering +15%."},
+    "Onion": {"avg_yield_quintal_per_acre": 80, "range": [50, 120], "season": "Rabi", "factors": "Proper curing +storage life. Drip +25%."},
+    "Maize": {"avg_yield_quintal_per_acre": 20, "range": [12, 30], "season": "Kharif", "factors": "Hybrid seeds +30%. Timely weeding critical."}
+  },
+  "KE": {
+    "Maize": {"avg_yield_quintal_per_acre": 8, "range": [4, 15], "season": "Long Rains", "factors": "Hybrid seeds +50%. DAP at planting +20%."},
+    "Beans": {"avg_yield_quintal_per_acre": 5, "range": [3, 8], "season": "Long Rains", "factors": "Certified seeds +25%. Proper spacing important."},
+    "Tea": {"avg_yield_quintal_per_acre": 12, "range": [8, 18], "season": "All", "factors": "Regular pruning +15%. Fertilizer management critical."}
+  },
+  "NG": {
+    "Maize": {"avg_yield_quintal_per_acre": 6, "range": [3, 12], "season": "First Rainy", "factors": "Improved varieties +40%. Fertilizer +30%."},
+    "Rice": {"avg_yield_quintal_per_acre": 10, "range": [6, 18], "season": "First Rainy", "factors": "FARO varieties recommended. Proper water management."},
+    "Cowpea": {"avg_yield_quintal_per_acre": 4, "range": [2, 7], "season": "Second Rainy", "factors": "Pest management critical. Serpentine moth control."}
+  }
+}

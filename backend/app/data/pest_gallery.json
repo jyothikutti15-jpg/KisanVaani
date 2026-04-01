@@ -1,0 +1,58 @@
+{
+  "whitefly": {
+    "name": "Whitefly (Safed Makhi)",
+    "crops": ["Tomato", "Cotton", "Brinjal", "Chilli"],
+    "symptoms": "Tiny white flying insects on leaf undersides. Leaves turn yellow, sticky honeydew, sooty mold.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Trialeurodes_vaporariorum_on_Gerbera_jamesonii.jpg/640px-Trialeurodes_vaporariorum_on_Gerbera_jamesonii.jpg",
+    "treatment": "Neem oil 5ml/L spray. Yellow sticky traps (10/acre). Imidacloprid 0.5ml/L if severe."
+  },
+  "fall_armyworm": {
+    "name": "Fall Armyworm",
+    "crops": ["Maize", "Sorghum", "Rice"],
+    "symptoms": "Ragged holes in leaves, windowpane damage, frass (sawdust-like droppings) in leaf whorl.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Spodoptera_frugiperda_larva.jpg/640px-Spodoptera_frugiperda_larva.jpg",
+    "treatment": "Hand-pick early morning. Neem oil 5ml/L. Emamectin benzoate 0.4g/L if severe. Pheromone traps."
+  },
+  "bollworm": {
+    "name": "Cotton Bollworm (Heliothis)",
+    "crops": ["Cotton", "Chickpea", "Tomato", "Pigeon Pea"],
+    "symptoms": "Holes in bolls/fruits, larvae inside bolls, boll shedding.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Helicoverpa_armigera_larva.jpg/640px-Helicoverpa_armigera_larva.jpg",
+    "treatment": "Pheromone traps (5/acre). Neem seed kernel extract 5%. HaNPV spray. Spinosad if severe."
+  },
+  "rice_blast": {
+    "name": "Rice Blast (Magnaporthe oryzae)",
+    "crops": ["Rice"],
+    "symptoms": "Diamond-shaped spots on leaves with gray center and brown border. Neck rot at panicle base.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Rice_blast_symptoms_on_leaf.jpg/640px-Rice_blast_symptoms_on_leaf.jpg",
+    "treatment": "Tricyclazole 0.6g/L spray. Avoid excess nitrogen. Use resistant varieties. Maintain proper spacing."
+  },
+  "leaf_curl_virus": {
+    "name": "Tomato Leaf Curl Virus",
+    "crops": ["Tomato", "Chilli"],
+    "symptoms": "Upward curling of leaves, stunted growth, small leaves, yellow margins.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Tomato_yellow_leaf_curl_virus_symptoms.jpg/640px-Tomato_yellow_leaf_curl_virus_symptoms.jpg",
+    "treatment": "Remove infected plants. Control whitefly (vector). Use resistant varieties. Silver mulch repels whitefly."
+  },
+  "stem_borer": {
+    "name": "Stem Borer (Rice/Sugarcane)",
+    "crops": ["Rice", "Sugarcane", "Maize"],
+    "symptoms": "Dead heart in young plants, white ear in mature plants, bore holes in stem.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Scirpophaga_incertulas.jpg/640px-Scirpophaga_incertulas.jpg",
+    "treatment": "Light traps. Trichogramma release (egg parasitoid). Carbofuran 3G in whorl. Clip tips of seedlings."
+  },
+  "powdery_mildew": {
+    "name": "Powdery Mildew",
+    "crops": ["Cotton", "Grapes", "Mango", "Peas", "Cucumber"],
+    "symptoms": "White powdery coating on leaves, stems, flowers. Leaves curl and drop.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Powdery_mildew_on_pumpkin_leaf.jpg/640px-Powdery_mildew_on_pumpkin_leaf.jpg",
+    "treatment": "Sulfur 2g/L spray. Baking soda 5g/L. Remove affected parts. Improve air circulation."
+  },
+  "early_blight": {
+    "name": "Early Blight (Alternaria)",
+    "crops": ["Tomato", "Potato", "Chilli"],
+    "symptoms": "Concentric ring-shaped brown spots on lower leaves first. Leaf yellowing and drop.",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Alternaria_solani_early_blight_tomato.jpg/640px-Alternaria_solani_early_blight_tomato.jpg",
+    "treatment": "Mancozeb 2g/L spray every 7 days. Remove infected leaves. Mulch to prevent soil splash."
+  }
+}

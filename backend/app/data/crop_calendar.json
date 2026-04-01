@@ -1,0 +1,17 @@
+{
+  "Kharif": {
+    "months": "June - October",
+    "active_crops": ["Rice", "Maize", "Cotton", "Soybean", "Groundnut", "Sugarcane", "Jowar", "Bajra", "Tur Dal"],
+    "activities": "Sowing in June-July, weeding in July-August, pest management in August-September, harvesting in October"
+  },
+  "Rabi": {
+    "months": "October - March",
+    "active_crops": ["Wheat", "Mustard", "Chickpea", "Barley", "Peas", "Linseed", "Potato", "Onion"],
+    "activities": "Sowing in October-November, irrigation management in December-January, harvesting in March-April"
+  },
+  "Zaid": {
+    "months": "March - June",
+    "active_crops": ["Watermelon", "Muskmelon", "Cucumber", "Moong Dal", "Vegetables", "Fodder crops"],
+    "activities": "Summer planting in March-April, intensive irrigation needed, harvest before monsoon"
+  }
+}

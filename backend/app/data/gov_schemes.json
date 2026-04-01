@@ -1,0 +1,29 @@
+{
+  "active": [
+    {
+      "name": "PM-KISAN",
+      "summary": "Rs 6,000/year in 3 installments to all landholding farmers. Apply via pmkisan.gov.in or CSC center.",
+      "eligibility": "All farmer families with cultivable land"
+    },
+    {
+      "name": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+      "summary": "Crop insurance at 2% premium for Kharif, 1.5% for Rabi. Covers natural calamities, pests, diseases.",
+      "eligibility": "All farmers growing notified crops in notified areas"
+    },
+    {
+      "name": "Kisan Credit Card (KCC)",
+      "summary": "Credit up to Rs 3 lakh at 4% interest for crop cultivation, post-harvest, and allied activities.",
+      "eligibility": "All farmers, sharecroppers, tenant farmers"
+    },
+    {
+      "name": "Soil Health Card Scheme",
+      "summary": "Free soil testing and nutrient-based fertilizer recommendations every 2 years.",
+      "eligibility": "All farmers — visit nearest Krishi Vigyan Kendra"
+    },
+    {
+      "name": "PM Kisan Samman Nidhi — Drone Didi",
+      "summary": "Free drone-based pesticide spraying service through women SHGs in select districts.",
+      "eligibility": "Farmers in pilot districts — check with local agriculture office"
+    }
+  ]
+}

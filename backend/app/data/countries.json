@@ -1,0 +1,91 @@
+{
+  "IN": {
+    "name": "India",
+    "languages": ["hi", "te", "ta", "en", "kn", "mr", "bn", "gu", "pa"],
+    "currency": "INR (Rs)",
+    "extension_service": "Krishi Vigyan Kendra (KVK)",
+    "emergency_helpline": "155261 (Bharat-VISTAAR) / Kisan Call Centre 1800-180-1551",
+    "seasons": {
+      "Kharif": {"months": "Jun-Oct", "crops": ["Rice", "Cotton", "Soybean", "Maize", "Groundnut", "Sugarcane", "Tur Dal"]},
+      "Rabi": {"months": "Oct-Mar", "crops": ["Wheat", "Mustard", "Chickpea", "Barley", "Potato", "Onion"]},
+      "Zaid": {"months": "Mar-Jun", "crops": ["Watermelon", "Cucumber", "Moong Dal", "Vegetables"]}
+    },
+    "schemes": [
+      {"name": "PM-KISAN", "summary": "Rs 6,000/year in 3 installments to all landholding farmers"},
+      {"name": "PMFBY", "summary": "Crop insurance at 2% premium for Kharif, 1.5% for Rabi"},
+      {"name": "Kisan Credit Card", "summary": "Credit up to Rs 3 lakh at 4% interest"},
+      {"name": "Soil Health Card", "summary": "Free soil testing every 2 years"},
+      {"name": "PM Micro Irrigation", "summary": "55% subsidy on drip/sprinkler systems"}
+    ],
+    "market_prices": {
+      "Rice": "Rs 2,275/quintal", "Wheat": "Rs 2,350/quintal", "Cotton": "Rs 7,121/quintal",
+      "Soybean": "Rs 4,892/quintal", "Tomato": "Rs 2,200/quintal", "Onion": "Rs 1,800/quintal"
+    }
+  },
+  "KE": {
+    "name": "Kenya",
+    "languages": ["sw", "en"],
+    "currency": "KES (Ksh)",
+    "extension_service": "County Agricultural Extension Officer",
+    "emergency_helpline": "0800-723-253 (Kenya Agricultural Helpline)",
+    "seasons": {
+      "Long Rains": {"months": "Mar-May", "crops": ["Maize", "Beans", "Sorghum", "Green Grams", "Cowpeas"]},
+      "Short Rains": {"months": "Oct-Dec", "crops": ["Maize", "Beans", "Wheat", "Potatoes"]},
+      "Dry Season": {"months": "Jun-Sep", "crops": ["Irrigation crops", "Fodder", "Drought-tolerant varieties"]}
+    },
+    "schemes": [
+      {"name": "NARIGP", "summary": "National Agricultural Rural Inclusive Growth Project — grants for farmer groups"},
+      {"name": "Njaa Marufuku Kenya", "summary": "Food security program with input subsidies"},
+      {"name": "e-Voucher System", "summary": "Digital subsidies for certified seeds and fertilizer"},
+      {"name": "Kenya Cereal Enhancement Programme", "summary": "Free seeds and training for cereal farmers"}
+    ],
+    "market_prices": {
+      "Maize": "Ksh 3,800/90kg bag", "Beans": "Ksh 8,500/90kg bag", "Wheat": "Ksh 4,200/90kg bag",
+      "Potatoes": "Ksh 2,500/50kg bag", "Tea": "Ksh 45/kg green leaf", "Coffee": "Ksh 120/kg cherry"
+    }
+  },
+  "NG": {
+    "name": "Nigeria",
+    "languages": ["en", "ha", "yo", "ig"],
+    "currency": "NGN (₦)",
+    "extension_service": "Agricultural Development Programme (ADP) office",
+    "emergency_helpline": "Contact state Ministry of Agriculture",
+    "seasons": {
+      "First Rainy": {"months": "Apr-Jul", "crops": ["Maize", "Rice", "Yam", "Cassava", "Melon"]},
+      "Second Rainy": {"months": "Sep-Nov", "crops": ["Rice", "Vegetables", "Late maize"]},
+      "Dry Season": {"months": "Dec-Mar", "crops": ["Irrigated rice", "Vegetables", "Wheat (north)"]}
+    },
+    "schemes": [
+      {"name": "Anchor Borrowers Programme", "summary": "CBN-funded loans for smallholder farmers at 9% interest"},
+      {"name": "Growth Enhancement Support", "summary": "50% subsidy on fertilizer via e-wallet"},
+      {"name": "National Fadama Development", "summary": "Grants for irrigation and fadama farming"},
+      {"name": "Presidential Fertiliser Initiative", "summary": "Locally blended fertilizer at subsidized rates"}
+    ],
+    "market_prices": {
+      "Rice (local)": "₦85,000/100kg", "Maize": "₦42,000/100kg", "Cassava": "₦25,000/100kg",
+      "Yam": "₦120,000/100 tubers", "Cowpea": "₦65,000/100kg", "Sorghum": "₦38,000/100kg"
+    }
+  },
+  "ET": {
+    "name": "Ethiopia",
+    "languages": ["am", "en", "om"],
+    "currency": "ETB (Birr)",
+    "extension_service": "Development Agent (DA) at local Kebele",
+    "emergency_helpline": "Contact Woreda Agriculture Office",
+    "seasons": {
+      "Meher": {"months": "Jun-Dec", "crops": ["Teff", "Wheat", "Barley", "Maize", "Sorghum", "Chickpea"]},
+      "Belg": {"months": "Feb-May", "crops": ["Maize", "Sorghum", "Potatoes", "Root crops"]},
+      "Dry": {"months": "Dec-Feb", "crops": ["Irrigated vegetables", "Onion", "Tomato"]}
+    },
+    "schemes": [
+      {"name": "Productive Safety Net Programme", "summary": "Food/cash for work in food-insecure areas"},
+      {"name": "Agricultural Growth Program", "summary": "World Bank-funded input subsidies and extension"},
+      {"name": "Smallholder Horticulture Project", "summary": "Irrigation and market access for vegetable growers"},
+      {"name": "Ethiopian Seed Association", "summary": "Improved seed access programs"}
+    ],
+    "market_prices": {
+      "Teff": "Birr 7,200/quintal", "Wheat": "Birr 5,800/quintal", "Maize": "Birr 3,500/quintal",
+      "Coffee": "Birr 14,000/quintal", "Chickpea": "Birr 8,500/quintal", "Onion": "Birr 2,800/quintal"
+    }
+  }
+}

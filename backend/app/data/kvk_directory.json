@@ -1,0 +1,40 @@
+{
+  "IN": {
+    "Madhya Pradesh": [
+      {"name": "KVK Sehore", "district": "Sehore", "phone": "07562-223456", "address": "RVSKVV Campus, Sehore 466001"},
+      {"name": "KVK Bhopal", "district": "Bhopal", "phone": "0755-2742355", "address": "ICAR-ATARI Zone IX, Bhopal"},
+      {"name": "KVK Indore", "district": "Indore", "phone": "0731-2476531", "address": "College of Agriculture, Indore 452001"}
+    ],
+    "Telangana": [
+      {"name": "KVK Warangal", "district": "Warangal", "phone": "0870-2456123", "address": "PJTSAU, Warangal 506007"},
+      {"name": "KVK Hyderabad", "district": "Hyderabad", "phone": "040-24015011", "address": "ICAR-CRIDA, Hyderabad 500059"}
+    ],
+    "Maharashtra": [
+      {"name": "KVK Pune", "district": "Pune", "phone": "020-25691234", "address": "MPKV College of Agriculture, Pune 411005"},
+      {"name": "KVK Nagpur", "district": "Nagpur", "phone": "0712-2500164", "address": "Dr. PDKV Campus, Nagpur 440006"}
+    ],
+    "Karnataka": [
+      {"name": "KVK Bangalore Rural", "district": "Bangalore", "phone": "080-23636965", "address": "UAS GKVK Campus, Bangalore 560065"}
+    ],
+    "Tamil Nadu": [
+      {"name": "KVK Kancheepuram", "district": "Chennai", "phone": "044-27452370", "address": "TNAU, Kancheepuram 631501"}
+    ]
+  },
+  "KE": {
+    "Western Kenya": [
+      {"name": "Kakamega County Agri Office", "district": "Kakamega", "phone": "+254-56-2030456", "address": "County Agriculture Office, Kakamega"},
+      {"name": "KALRO Kakamega", "district": "Kakamega", "phone": "+254-56-2030123", "address": "KALRO Centre, Kakamega"}
+    ]
+  },
+  "NG": {
+    "Kano": [
+      {"name": "Kano State ADP", "district": "Kano", "phone": "+234-64-123456", "address": "State ADP Office, Zoo Road, Kano"},
+      {"name": "IAR Samaru", "district": "Kano", "phone": "+234-69-550571", "address": "Institute for Agricultural Research, ABU Zaria"}
+    ]
+  },
+  "ET": {
+    "Amhara": [
+      {"name": "Bahir Dar Agricultural Office", "district": "Bahir Dar", "phone": "+251-58-2200123", "address": "Woreda Agriculture Office, Bahir Dar"}
+    ]
+  }
+}

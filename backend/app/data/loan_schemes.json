@@ -1,0 +1,62 @@
+{
+  "IN": [
+    {
+      "name": "Kisan Credit Card (KCC)",
+      "max_amount": 300000,
+      "interest_rate": 4.0,
+      "eligibility": "All farmers with cultivable land",
+      "documents": ["Aadhaar Card", "Land records (Khasra/Khatauni)", "Bank passbook", "2 passport photos"],
+      "where_to_apply": "Any nationalized bank, cooperative bank, or regional rural bank",
+      "repayment": "12 months (crop loan) or 5 years (term loan)"
+    },
+    {
+      "name": "PM-KISAN Samman Nidhi",
+      "max_amount": 6000,
+      "interest_rate": 0,
+      "eligibility": "All landholding farmer families (excluding income tax payers, govt employees)",
+      "documents": ["Aadhaar Card", "Land ownership documents", "Bank account details"],
+      "where_to_apply": "pmkisan.gov.in or nearest CSC center",
+      "repayment": "No repayment — direct benefit transfer"
+    },
+    {
+      "name": "PMFBY Crop Insurance",
+      "max_amount": 200000,
+      "interest_rate": 0,
+      "eligibility": "All farmers growing notified crops",
+      "documents": ["Land records", "Sowing certificate", "Bank account", "Aadhaar"],
+      "where_to_apply": "Bank branch, CSC center, or pmfby.gov.in",
+      "repayment": "Premium: 2% Kharif, 1.5% Rabi, 5% Horticulture"
+    },
+    {
+      "name": "Agri Infrastructure Fund (AIF)",
+      "max_amount": 200000000,
+      "interest_rate": 5.0,
+      "eligibility": "Farmers, FPOs, PACS, agri-entrepreneurs",
+      "documents": ["Project report", "Land documents", "KYC", "Business plan"],
+      "where_to_apply": "Any scheduled commercial bank",
+      "repayment": "7 years with 2-year moratorium"
+    }
+  ],
+  "KE": [
+    {
+      "name": "Agricultural Finance Corporation (AFC) Loan",
+      "max_amount": 5000000,
+      "interest_rate": 10.0,
+      "eligibility": "Registered farmers with land title",
+      "documents": ["National ID", "Land title deed", "Farm business plan"],
+      "where_to_apply": "AFC Kenya offices",
+      "repayment": "Based on crop cycle"
+    }
+  ],
+  "NG": [
+    {
+      "name": "Anchor Borrowers Programme (ABP)",
+      "max_amount": 500000,
+      "interest_rate": 9.0,
+      "eligibility": "Smallholder farmers with minimum 1 hectare",
+      "documents": ["BVN", "Farm location details", "Cooperative membership"],
+      "where_to_apply": "Through participating banks and cooperatives",
+      "repayment": "At harvest time"
+    }
+  ]
+}
