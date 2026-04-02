@@ -1,10 +1,15 @@
+import logging
 import struct
 import urllib.parse
 import urllib.request
 import wave
 from io import BytesIO
 
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+
 from app.config import SUPPORTED_LANGUAGES, settings
+
+logger = logging.getLogger("kisanvaani.tts")
 
 
 def _generate_silence_wav(duration_seconds: float = 2.0, sample_rate: int = 24000) -> bytes:
@@ -35,31 +40,40 @@ class TTSService:
     for Twilio phone calls and as a fallback.
     """
 
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_fixed(1),
+        retry=retry_if_exception_type((urllib.error.URLError, TimeoutError)),
+    )
+    def _fetch_tts_chunk(self, url: str) -> bytes:
+        """Fetch a single TTS audio chunk with retry."""
+        req = urllib.request.Request(url)
+        req.add_header("User-Agent", "Mozilla/5.0")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.read()
+
     async def synthesize(self, text: str, language: str = "en") -> bytes:
         if settings.MOCK_MODE:
             return MOCK_AUDIO
 
-        # Use Google Translate TTS (free, no key needed, supports all our languages)
         lang_code = GTTS_LANG_MAP.get(language, "en")
-
-        # Split text into chunks of ~200 chars (Google TTS limit)
         chunks = self._split_text(text, 200)
         audio_parts = []
 
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks):
             encoded = urllib.parse.quote(chunk)
             url = f"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl={lang_code}&q={encoded}"
 
             try:
-                req = urllib.request.Request(url)
-                req.add_header("User-Agent", "Mozilla/5.0")
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    audio_parts.append(resp.read())
-            except Exception:
+                audio_parts.append(self._fetch_tts_chunk(url))
+            except Exception as e:
+                logger.warning(f"TTS chunk {i+1}/{len(chunks)} failed: {e}")
                 continue
 
         if audio_parts:
             return b"".join(audio_parts)
+
+        logger.warning("All TTS chunks failed, returning silence")
         return MOCK_AUDIO
 
     def _split_text(self, text: str, max_len: int) -> list[str]:

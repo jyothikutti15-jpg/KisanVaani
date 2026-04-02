@@ -1,14 +1,53 @@
 import json
+import logging
+import os
+import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.config import SUPPORTED_LANGUAGES, settings
 from app.database import Base, SessionLocal, engine
 from app.models.alert import Alert, CommunityInsight
-from app.routers import alerts, analytics, expenses, farmers, features, twilio_voice, web_voice
+from app.routers import (
+    advanced, alerts, analytics, expenses, farmers, features,
+    proactive, twilio_voice, web_voice, whatsapp,
+)
+
+# Configure structured logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("kisanvaani")
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIMIT])
+
+
+def _cleanup_old_audio():
+    """Remove audio files older than AUDIO_CACHE_TTL_HOURS."""
+    audio_dir = Path(settings.AUDIO_DIR)
+    if not audio_dir.exists():
+        return
+    ttl_seconds = settings.AUDIO_CACHE_TTL_HOURS * 3600
+    now = time.time()
+    removed = 0
+    for f in audio_dir.iterdir():
+        if f.is_file() and (now - f.stat().st_mtime) > ttl_seconds:
+            f.unlink()
+            removed += 1
+    if removed:
+        logger.info(f"Audio cleanup: removed {removed} expired files")
 
 
 def _seed_demo_data():
@@ -62,17 +101,32 @@ def _seed_demo_data():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Starting KisanVaani v2.1...")
     Base.metadata.create_all(bind=engine)
     _seed_demo_data()
+    _cleanup_old_audio()
+    # Seed price history for price prediction
+    from app.services.price_predictor import seed_price_history
+    db = SessionLocal()
+    try:
+        seed_price_history(db)
+    finally:
+        db.close()
+    logger.info(f"Mode: {'MOCK' if settings.MOCK_MODE else 'PRODUCTION'} | Model: {settings.CLAUDE_MODEL}")
     yield
+    logger.info("Shutting down KisanVaani")
 
 
 app = FastAPI(
     title="KisanVaani",
     description="Voice-First AI Farm Advisor — Multi-country, with Farmer Memory, Photo Diagnosis, Proactive Alerts, and Expense Tracking",
-    version="2.0.0",
+    version="2.1.0",
     lifespan=lifespan,
 )
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -82,18 +136,51 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Request logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+    if request.url.path.startswith("/api/"):
+        logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({duration:.2f}s)")
+    return response
+
+
 app.include_router(web_voice.router)
 app.include_router(twilio_voice.router)
+app.include_router(whatsapp.router)
 app.include_router(analytics.router)
 app.include_router(farmers.router)
 app.include_router(alerts.router)
 app.include_router(expenses.router)
 app.include_router(features.router)
+app.include_router(advanced.router)
+app.include_router(proactive.router)
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "KisanVaani", "version": "2.0", "mock_mode": settings.MOCK_MODE}
+    """Enhanced health check with database and external service status."""
+    db_ok = False
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db_ok = True
+        db.close()
+    except Exception:
+        pass
+
+    return {
+        "status": "ok" if db_ok else "degraded",
+        "service": "KisanVaani",
+        "version": "2.1.0",
+        "mock_mode": settings.MOCK_MODE,
+        "database": "connected" if db_ok else "error",
+        "ai_configured": bool(settings.ANTHROPIC_API_KEY),
+        "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID),
+    }
 
 
 @app.get("/api/languages")

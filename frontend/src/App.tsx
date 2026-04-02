@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
+import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './pages/LandingPage';
 import VoiceDemo from './pages/VoiceDemo';
 import Dashboard from './pages/Dashboard';
@@ -11,14 +12,16 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/demo" element={<VoiceDemo />} />
-        <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/alerts" element={<AlertsPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/calls" element={<CallHistory />} />
-      </Routes>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/demo" element={<VoiceDemo />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/alerts" element={<AlertsPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/calls" element={<CallHistory />} />
+        </Routes>
+      </ErrorBoundary>
     </div>
   );
 }

@@ -1,16 +1,21 @@
 import json
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from app.database import SessionLocal
 from app.models.call import CallLog
 from app.models.farmer import FarmerExpense, FarmerProfile
+from app.models.session import ConversationTurn
 from app.services.farming_knowledge import get_context
 from app.services.llm_service import llm_service
 from app.services.stt_service import stt_service
 from app.services.tts_service import tts_service
+
+logger = logging.getLogger("kisanvaani.pipeline")
 
 
 @dataclass
@@ -23,20 +28,42 @@ class PipelineResult:
     expense_detected: Optional[dict] = None
 
 
-# In-memory conversation history
-_sessions: dict[str, list[dict]] = {}
+def get_history(session_id: str, db: Optional[Session] = None) -> list[dict]:
+    """Get conversation history from database."""
+    if not db:
+        return []
+    turns = (
+        db.query(ConversationTurn)
+        .filter(ConversationTurn.session_id == session_id)
+        .order_by(ConversationTurn.turn_number.desc())
+        .limit(4)
+        .all()
+    )
+    # Return in chronological order
+    return [{"farmer": t.farmer_text, "advisor": t.advisor_text} for t in reversed(turns)]
 
 
-def get_history(session_id: str) -> list[dict]:
-    return _sessions.get(session_id, [])
+def add_to_history(session_id: str, farmer: str, advisor: str, db: Optional[Session] = None):
+    """Store conversation turn in database."""
+    if not db:
+        return
+    # Get next turn number
+    last_turn = (
+        db.query(ConversationTurn.turn_number)
+        .filter(ConversationTurn.session_id == session_id)
+        .order_by(ConversationTurn.turn_number.desc())
+        .first()
+    )
+    turn_number = (last_turn[0] + 1) if last_turn else 1
 
-
-def add_to_history(session_id: str, farmer: str, advisor: str):
-    if session_id not in _sessions:
-        _sessions[session_id] = []
-    _sessions[session_id].append({"farmer": farmer, "advisor": advisor})
-    if len(_sessions[session_id]) > 4:
-        _sessions[session_id] = _sessions[session_id][-4:]
+    turn = ConversationTurn(
+        session_id=session_id,
+        turn_number=turn_number,
+        farmer_text=farmer,
+        advisor_text=advisor,
+    )
+    db.add(turn)
+    db.commit()
 
 
 def _get_farmer_context(db: Session, farmer_id: Optional[int], country: str, language: str) -> tuple[str, Optional[FarmerProfile]]:
@@ -87,7 +114,7 @@ async def process_text(
         context = get_context(language=language, country=country)
 
     # LLM reasoning (with optional image)
-    history = get_history(session_id)
+    history = get_history(session_id, db)
     response_text = await llm_service.advise(
         question=text,
         language=language,
@@ -111,6 +138,7 @@ async def process_text(
             crop=expense_data.get("crop"),
         )
         db.add(expense)
+        logger.info(f"Expense detected: {expense_data.get('category')} Rs {expense_data.get('amount')} for farmer {farmer_id}")
 
     # Update farmer memory
     if farmer and db:
@@ -120,18 +148,21 @@ async def process_text(
 
     # TTS
     audio = await tts_service.synthesize(clean_response, language)
-    add_to_history(session_id, text, clean_response)
+    add_to_history(session_id, text, clean_response, db)
 
     # Log call
     if db:
         log_call(db, session_id, "web", text, clean_response, language)
+
+    duration = time.time() - start
+    logger.info(f"Pipeline completed: lang={language}, duration={duration:.2f}s, response_len={len(clean_response)}")
 
     return PipelineResult(
         transcript=text,
         response_text=clean_response,
         audio=audio,
         language=language,
-        duration=time.time() - start,
+        duration=duration,
         expense_detected=expense_data,
     )
 

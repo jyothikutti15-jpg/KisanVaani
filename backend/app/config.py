@@ -9,10 +9,13 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_PHONE_NUMBER: str = ""
     DATABASE_URL: str = "sqlite:///./kisanvaani.db"
-    CLAUDE_MODEL: str = "claude-sonnet-4-20250514"
+    CLAUDE_MODEL: str = "claude-sonnet-4-6"
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
     MOCK_MODE: bool = True  # Set False when API keys are configured
     AUDIO_DIR: str = str(Path(__file__).parent.parent / "audio_cache")
+    RATE_LIMIT: str = "30/minute"  # Rate limit for API endpoints
+    MAX_INPUT_LENGTH: int = 2000  # Max characters for text input
+    AUDIO_CACHE_TTL_HOURS: int = 24  # Auto-cleanup audio files older than this
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

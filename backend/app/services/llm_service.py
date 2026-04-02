@@ -1,11 +1,14 @@
-import base64
 import json
+import logging
 import re
 
 import anthropic
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from app.config import settings
 from app.services.farming_knowledge import get_context
+
+logger = logging.getLogger("kisanvaani.llm")
 
 SYSTEM_PROMPT = """You are KisanVaani, the world's most advanced AI farm advisor for smallholder farmers. You serve farmers across India, Kenya, Nigeria, and Ethiopia. You speak warmly, like a wise village elder.
 
@@ -60,7 +63,8 @@ SAFETY:
 - For serious diseases, recommend local extension service (name from context)
 - Never recommend banned pesticides
 - When unsure, say so honestly
-- For livestock: recommend veterinarian"""
+- For livestock: recommend veterinarian
+- IMPORTANT: Only respond to farming-related questions. If asked about non-farming topics, politely redirect to farming."""
 
 
 # Mock responses
@@ -77,13 +81,29 @@ class LLMService:
     def __init__(self):
         self.client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY) if settings.ANTHROPIC_API_KEY else None
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((anthropic.APITimeoutError, anthropic.APIConnectionError, anthropic.InternalServerError)),
+        before_sleep=lambda retry_state: logger.warning(f"LLM retry attempt {retry_state.attempt_number}..."),
+    )
+    async def _call_claude(self, messages: list, system: str) -> str:
+        """Call Claude API with retry logic for transient failures."""
+        response = await self.client.messages.create(
+            model=settings.CLAUDE_MODEL,
+            max_tokens=1000,
+            system=system,
+            messages=messages,
+        )
+        return response.content[0].text
+
     async def advise(
         self,
         question: str,
         language: str = "en",
         context: str = "",
         history: list[dict] | None = None,
-        image_data: str | None = None,  # base64 encoded image
+        image_data: str | None = None,
         image_media_type: str = "image/jpeg",
     ) -> str:
         if settings.MOCK_MODE or not self.client:
@@ -125,16 +145,13 @@ class LLMService:
             text_content += "\n\n[The farmer has also sent a photo of their crop/problem. Analyze the image carefully along with their description.]"
 
         content.append({"type": "text", "text": text_content})
-
         messages.append({"role": "user", "content": content})
 
-        response = await self.client.messages.create(
-            model=settings.CLAUDE_MODEL,
-            max_tokens=600,
-            system=SYSTEM_PROMPT,
-            messages=messages,
-        )
-        return response.content[0].text
+        try:
+            return await self._call_claude(messages, SYSTEM_PROMPT)
+        except Exception as e:
+            logger.error(f"LLM call failed after retries: {e}")
+            return MOCK_RESPONSES.get(language, MOCK_RESPONSES["en"])
 
     def extract_expense(self, ai_response: str) -> dict | None:
         """Extract expense JSON from AI response if present."""

@@ -1,5 +1,6 @@
 # Environment
 backend/.env
+.env
 backend/venv/
 backend/__pycache__/
 backend/app/__pycache__/
@@ -12,6 +13,7 @@ backend/test_*.png
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/package-lock.json
 
 # OS
 .DS_Store
@@ -21,3 +23,20 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Docker
+docker-compose.override.yml
+
+# Secrets (catch-all)
+*.pem
+*.key
+credentials.json
