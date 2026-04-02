@@ -7,6 +7,11 @@ import Dashboard from './pages/Dashboard';
 import CallHistory from './pages/CallHistory';
 import AlertsPage from './pages/AlertsPage';
 import FeaturesPage from './pages/FeaturesPage';
+import PricePredictionPage from './pages/PricePredictionPage';
+import SatellitePage from './pages/SatellitePage';
+import MarketplacePage from './pages/MarketplacePage';
+import ExpertCallbackPage from './pages/ExpertCallbackPage';
+import FarmerNetworkPage from './pages/FarmerNetworkPage';
 
 export default function App() {
   return (
@@ -17,6 +22,11 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/demo" element={<VoiceDemo />} />
           <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/prices" element={<PricePredictionPage />} />
+          <Route path="/satellite" element={<SatellitePage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/expert" element={<ExpertCallbackPage />} />
+          <Route path="/network" element={<FarmerNetworkPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/calls" element={<CallHistory />} />

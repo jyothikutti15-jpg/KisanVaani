@@ -19,7 +19,7 @@ from app.database import Base, SessionLocal, engine
 from app.models.alert import Alert, CommunityInsight
 from app.routers import (
     advanced, alerts, analytics, expenses, farmers, features,
-    proactive, twilio_voice, web_voice, whatsapp,
+    proactive, twilio_voice, unique, web_voice, whatsapp,
 )
 
 # Configure structured logging
@@ -158,6 +158,7 @@ app.include_router(expenses.router)
 app.include_router(features.router)
 app.include_router(advanced.router)
 app.include_router(proactive.router)
+app.include_router(unique.router)
 
 
 @app.get("/api/health")
