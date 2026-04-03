@@ -11,22 +11,41 @@ CACHE_TTL = 1800  # 30 minutes
 
 # City coordinates for common farming regions
 CITY_COORDS = {
-    # India
-    "sehore": (23.20, 77.08), "vidarbha": (20.93, 77.78), "warangal": (17.98, 79.60),
-    "pune": (18.52, 73.86), "indore": (22.72, 75.86), "nagpur": (21.15, 79.09),
+    # India — Major cities
+    "mumbai": (19.08, 72.88), "delhi": (28.61, 77.21), "new delhi": (28.61, 77.21),
+    "pune": (18.52, 73.86), "nagpur": (21.15, 79.09), "nashik": (19.99, 73.79),
+    "hyderabad": (17.39, 78.49), "chennai": (13.08, 80.27), "bangalore": (12.97, 77.59),
+    "bengaluru": (12.97, 77.59), "kolkata": (22.57, 88.36), "ahmedabad": (23.02, 72.57),
     "jaipur": (26.91, 75.79), "lucknow": (26.85, 80.95), "patna": (25.61, 85.14),
-    "bhopal": (23.26, 77.41), "hyderabad": (17.39, 78.49), "chennai": (13.08, 80.27),
-    "bangalore": (12.97, 77.59), "kolkata": (22.57, 88.36), "ahmedabad": (23.02, 72.57),
+    "bhopal": (23.26, 77.41), "indore": (22.72, 75.86), "surat": (21.17, 72.83),
+    "chandigarh": (30.73, 76.78), "coimbatore": (11.01, 76.96), "visakhapatnam": (17.69, 83.22),
+    "thiruvananthapuram": (8.52, 76.94), "mysore": (12.30, 76.66), "mangalore": (12.87, 74.88),
+    "rajkot": (22.30, 70.80), "vadodara": (22.31, 73.19), "aurangabad": (19.88, 75.34),
+    "solapur": (17.66, 75.91), "amravati": (20.93, 77.78), "sangli": (16.85, 74.56),
+    # India — Farming regions & states
+    "sehore": (23.20, 77.08), "vidarbha": (20.93, 77.78), "warangal": (17.98, 79.60),
+    "shirur": (18.83, 74.38), "baramati": (18.15, 74.58), "satara": (17.68, 74.00),
+    "latur": (18.40, 76.57), "nanded": (19.15, 77.30), "kolhapur": (16.70, 74.24),
     "madhya pradesh": (23.26, 77.41), "telangana": (17.39, 78.49), "karnataka": (12.97, 77.59),
-    "maharashtra": (19.08, 72.88), "tamil nadu": (13.08, 80.27),
+    "maharashtra": (19.08, 72.88), "tamil nadu": (13.08, 80.27), "rajasthan": (26.91, 75.79),
+    "gujarat": (23.02, 72.57), "uttar pradesh": (26.85, 80.95), "bihar": (25.61, 85.14),
+    "punjab": (30.73, 76.78), "haryana": (29.06, 76.09), "andhra pradesh": (15.91, 79.74),
+    "west bengal": (22.57, 88.36), "odisha": (20.27, 85.84), "kerala": (8.52, 76.94),
+    "assam": (26.14, 91.77), "chhattisgarh": (21.25, 81.63), "jharkhand": (23.34, 85.31),
     # Kenya
     "kakamega": (0.28, 34.75), "nairobi": (-1.29, 36.82), "mombasa": (-4.04, 39.67),
-    "western kenya": (0.28, 34.75), "kisumu": (-0.09, 34.77),
+    "western kenya": (0.28, 34.75), "kisumu": (-0.09, 34.77), "nakuru": (-0.30, 36.07),
+    "eldoret": (0.51, 35.27), "thika": (-1.03, 37.07), "nyeri": (-0.42, 36.95),
+    "machakos": (-1.52, 37.26), "bungoma": (0.57, 34.56), "kitale": (1.02, 34.99),
     # Nigeria
     "kano": (12.00, 8.52), "lagos": (6.52, 3.38), "abuja": (9.06, 7.49),
-    "dawanau": (12.00, 8.52), "kaduna": (10.52, 7.43),
+    "dawanau": (12.00, 8.52), "kaduna": (10.52, 7.43), "ibadan": (7.38, 3.94),
+    "jos": (9.93, 8.89), "maiduguri": (11.85, 13.16), "enugu": (6.44, 7.50),
+    "katsina": (13.00, 7.60), "sokoto": (13.06, 5.24), "abeokuta": (7.16, 3.35),
     # Ethiopia
     "addis ababa": (9.02, 38.75), "bahir dar": (11.60, 37.39), "amhara": (11.60, 37.39),
+    "hawassa": (7.06, 38.48), "dire dawa": (9.60, 41.85), "jimma": (7.67, 36.83),
+    "mekelle": (13.50, 39.47), "gondar": (12.60, 37.47), "adama": (8.54, 39.27),
 }
 
 
@@ -145,7 +164,7 @@ async def get_weather(location: str, days: int = 3) -> dict:
     """Get weather forecast with fallback chain: Open-Meteo -> wttr.in -> cache."""
     coords = _get_coords(location)
     if not coords:
-        return {"error": f"Location '{location}' not found. Try: Pune, Nagpur, Kakamega, Kano, Nairobi"}
+        return {"error": f"Location '{location}' not found. Try: Mumbai, Pune, Delhi, Nagpur, Nashik, Hyderabad, Chennai, Bangalore, Nairobi, Kakamega, Kano, Lagos, Addis Ababa"}
 
     # Check cache first
     cache_key = f"{location.lower()}:{days}"
