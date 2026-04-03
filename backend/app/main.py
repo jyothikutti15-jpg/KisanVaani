@@ -203,18 +203,30 @@ def get_countries():
 
 
 # Serve frontend static files in production (when built with npm run build)
+# Uses middleware approach to avoid catch-all route conflicting with API routes
 import os
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse as _FileResponse
+from starlette.responses import FileResponse as _StaticFileResponse, Response as _StaticResponse
 
 _static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.isdir(_static_dir):
+    from fastapi.staticfiles import StaticFiles
     app.mount("/assets", StaticFiles(directory=os.path.join(_static_dir, "assets")), name="static-assets")
 
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        """Serve frontend for all non-API routes (SPA fallback)."""
-        file_path = os.path.join(_static_dir, full_path)
-        if os.path.isfile(file_path):
-            return _FileResponse(file_path)
-        return _FileResponse(os.path.join(_static_dir, "index.html"))
+    @app.middleware("http")
+    async def serve_spa(request: Request, call_next):
+        """Serve frontend SPA for non-API routes. API routes pass through to routers."""
+        response = await call_next(request)
+
+        # If API returned 404 for a non-API path, serve index.html (SPA routing)
+        path = request.url.path
+        if response.status_code == 404 and not path.startswith("/api/"):
+            # Try serving a static file first
+            file_path = os.path.join(_static_dir, path.lstrip("/"))
+            if os.path.isfile(file_path):
+                return _StaticFileResponse(file_path)
+            # Fallback to index.html for SPA routes
+            index_path = os.path.join(_static_dir, "index.html")
+            if os.path.isfile(index_path):
+                return _StaticFileResponse(index_path)
+
+        return response
