@@ -1,6 +1,6 @@
 """Satellite Crop Health Monitoring — NDVI analysis using free Sentinel-2 data.
 
-Uses the Sentinel Hub Statistical API (free tier) or simulated NDVI for demo mode.
+Uses the Sentinel Hub Statistical API (free tier) or deterministic NDVI for demo mode.
 NDVI (Normalized Difference Vegetation Index) ranges from -1 to 1:
   > 0.6: Very healthy, dense vegetation
   0.4-0.6: Healthy
@@ -9,10 +9,10 @@ NDVI (Normalized Difference Vegetation Index) ranges from -1 to 1:
 
 Detects crop stress before the farmer notices — enables early intervention.
 """
+import hashlib
 import json
 import logging
 import math
-import random
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta
@@ -33,6 +33,9 @@ NDVI_THRESHOLDS = {
     "stressed": (0.2, 0.4),
     "critical": (-1.0, 0.2),
 }
+
+# Cache for NDVI results (same location + date = same result)
+_ndvi_cache: dict[str, tuple[float, str]] = {}
 
 
 def _ndvi_to_status(ndvi: float) -> str:
@@ -79,18 +82,30 @@ def _generate_analysis(ndvi: float, status: str, crop: Optional[str] = None) -> 
         )
 
 
-async def get_ndvi_from_sentinel(lat: float, lon: float) -> Optional[float]:
-    """Fetch real NDVI data from Open-Meteo or Sentinel Hub.
-
-    In production, this would use the Sentinel Hub Statistical API:
-    https://services.sentinel-hub.com/api/v1/statistics
-
-    For demo, we use a simulated but realistic NDVI based on:
-    - Location (lat/lon affects growing season)
-    - Season (NDVI varies with crop growth cycle)
-    - Random variation (simulates field-level differences)
+def _deterministic_hash(lat: float, lon: float, date: str) -> float:
+    """Generate a deterministic but realistic-looking float from location + date.
+    Same inputs always produce the same output (no randomness).
     """
-    # Attempt to use Open-Meteo's soil/vegetation endpoint
+    key = f"{lat:.4f}:{lon:.4f}:{date}"
+    h = hashlib.md5(key.encode()).hexdigest()
+    # Convert first 8 hex chars to a float between 0 and 1
+    return int(h[:8], 16) / 0xFFFFFFFF
+
+
+async def get_ndvi_from_sentinel(lat: float, lon: float) -> Optional[float]:
+    """Fetch NDVI data — deterministic for same location + date.
+
+    Uses Open-Meteo evapotranspiration as vegetation proxy when available,
+    falls back to deterministic seasonal model.
+    """
+    today = datetime.now().strftime("%Y-%m-%d")
+    cache_key = f"{lat:.2f}:{lon:.2f}:{today}"
+
+    # Return cached value if available (same location + same day = same NDVI)
+    if cache_key in _ndvi_cache:
+        return _ndvi_cache[cache_key][0]
+
+    # Attempt to use Open-Meteo's evapotranspiration endpoint
     try:
         params = urllib.parse.urlencode({
             "latitude": lat,
@@ -104,26 +119,29 @@ async def get_ndvi_from_sentinel(lat: float, lon: float) -> Optional[float]:
         req.add_header("User-Agent", "KisanVaani/2.1")
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            # Use evapotranspiration as proxy for vegetation activity
             et0 = data.get("daily", {}).get("et0_fao_evapotranspiration", [0])[0]
             if et0:
                 # Map ET0 (0-10 mm/day) to approximate NDVI (0.1-0.8)
                 base_ndvi = min(0.8, max(0.1, 0.1 + (et0 / 10) * 0.7))
-                # Add spatial variation
-                variation = random.gauss(0, 0.05)
-                return round(min(0.9, max(0.05, base_ndvi + variation)), 2)
+                # Add deterministic spatial variation (not random!)
+                variation = (_deterministic_hash(lat, lon, today) - 0.5) * 0.08
+                ndvi = round(min(0.9, max(0.05, base_ndvi + variation)), 2)
+                _ndvi_cache[cache_key] = (ndvi, today)
+                return ndvi
     except Exception as e:
         logger.warning(f"Open-Meteo vegetation query failed: {e}")
 
-    # Fallback: simulate realistic NDVI
+    # Fallback: deterministic seasonal model (no randomness)
     month = datetime.now().month
+    hash_val = _deterministic_hash(lat, lon, today)
+
     # Growing season peaks in monsoon/rain months
     if 6 <= month <= 10:  # Kharif season
-        base = 0.55 + random.gauss(0, 0.12)
-    elif 11 <= month <= 2:  # Rabi season
-        base = 0.50 + random.gauss(0, 0.10)
-    else:  # Summer/dry season
-        base = 0.35 + random.gauss(0, 0.10)
+        base = 0.55 + (hash_val - 0.5) * 0.16
+    elif month >= 11 or month <= 2:  # Rabi season
+        base = 0.50 + (hash_val - 0.5) * 0.14
+    else:  # Summer/dry season (April-May)
+        base = 0.38 + (hash_val - 0.5) * 0.14
 
     # Latitude effect (tropical = more green)
     if abs(lat) < 15:
@@ -131,7 +149,9 @@ async def get_ndvi_from_sentinel(lat: float, lon: float) -> Optional[float]:
     elif abs(lat) > 25:
         base -= 0.03
 
-    return round(min(0.9, max(0.05, base)), 2)
+    ndvi = round(min(0.9, max(0.05, base)), 2)
+    _ndvi_cache[cache_key] = (ndvi, today)
+    return ndvi
 
 
 async def analyze_field_health(
@@ -170,9 +190,16 @@ async def analyze_field_health(
     db.add(report)
     db.commit()
 
-    # Nearby comparison (average NDVI for the region)
-    region_avg = ndvi + random.gauss(0, 0.08)  # Simulated regional average
-    region_avg = round(min(0.85, max(0.15, region_avg)), 2)
+    # Nearby comparison — deterministic regional average
+    region_hash = _deterministic_hash(latitude + 0.1, longitude + 0.1, datetime.now().strftime("%Y-%m-%d"))
+    month = datetime.now().month
+    if 6 <= month <= 10:
+        region_base = 0.50
+    elif month >= 11 or month <= 2:
+        region_base = 0.46
+    else:
+        region_base = 0.35
+    region_avg = round(min(0.85, max(0.15, region_base + (region_hash - 0.5) * 0.12)), 2)
     comparison = "above" if ndvi > region_avg else "below" if ndvi < region_avg - 0.05 else "similar to"
 
     return {

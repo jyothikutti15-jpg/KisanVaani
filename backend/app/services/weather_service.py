@@ -1,8 +1,13 @@
 """Live weather using Open-Meteo API (free, no key needed)."""
 import json
+import time
 import urllib.parse
 import urllib.request
 from typing import Optional
+
+# Cache weather responses for 30 minutes to avoid rate limiting (429)
+_weather_cache: dict[str, tuple[dict, float]] = {}
+CACHE_TTL = 1800  # 30 minutes
 
 # City coordinates for common farming regions
 CITY_COORDS = {
@@ -34,10 +39,17 @@ def _get_coords(location: str) -> Optional[tuple[float, float]]:
 
 
 async def get_weather(location: str, days: int = 3) -> dict:
-    """Get real weather forecast from Open-Meteo (free, no API key)."""
+    """Get real weather forecast from Open-Meteo (free, no API key). Cached for 30 min."""
     coords = _get_coords(location)
     if not coords:
         return {"error": f"Location '{location}' not found. Try a city or state name."}
+
+    # Check cache first
+    cache_key = f"{location.lower()}:{days}"
+    if cache_key in _weather_cache:
+        cached_data, cached_time = _weather_cache[cache_key]
+        if time.time() - cached_time < CACHE_TTL:
+            return cached_data
 
     lat, lon = coords
     params = urllib.parse.urlencode({
@@ -52,11 +64,14 @@ async def get_weather(location: str, days: int = 3) -> dict:
 
     try:
         req = urllib.request.Request(url)
-        req.add_header("User-Agent", "KisanVaani/2.0")
+        req.add_header("User-Agent", "KisanVaani/2.1")
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception as e:
-        return {"error": f"Weather API failed: {str(e)}"}
+        # Return cached data even if expired, rather than error
+        if cache_key in _weather_cache:
+            return _weather_cache[cache_key][0]
+        return {"error": f"Weather API temporarily unavailable. Try again in a few minutes."}
 
     # Parse current weather
     current = data.get("current_weather", {})
@@ -82,7 +97,7 @@ async def get_weather(location: str, days: int = 3) -> dict:
             "condition": weather_codes.get(daily["weathercode"][i], "Unknown"),
         })
 
-    return {
+    result = {
         "location": location,
         "current": {
             "temperature": current.get("temperature"),
@@ -91,6 +106,10 @@ async def get_weather(location: str, days: int = 3) -> dict:
         },
         "forecast": forecast,
     }
+
+    # Cache the result
+    _weather_cache[cache_key] = (result, time.time())
+    return result
 
 
 def format_weather_for_context(weather: dict) -> str:
