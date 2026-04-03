@@ -1,11 +1,11 @@
-"""Live weather using Open-Meteo API (free, no key needed)."""
+"""Live weather using multiple free APIs with fallback chain."""
 import json
 import time
 import urllib.parse
 import urllib.request
 from typing import Optional
 
-# Cache weather responses for 30 minutes to avoid rate limiting (429)
+# Cache weather responses for 30 minutes
 _weather_cache: dict[str, tuple[dict, float]] = {}
 CACHE_TTL = 1800  # 30 minutes
 
@@ -38,60 +38,85 @@ def _get_coords(location: str) -> Optional[tuple[float, float]]:
     return None
 
 
-async def get_weather(location: str, days: int = 3) -> dict:
-    """Get real weather forecast from Open-Meteo (free, no API key). Cached for 30 min."""
-    coords = _get_coords(location)
-    if not coords:
-        return {"error": f"Location '{location}' not found. Try a city or state name."}
+WEATHER_CODES = {
+    0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+    45: "Foggy", 51: "Light drizzle", 53: "Moderate drizzle", 55: "Dense drizzle",
+    61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
+    71: "Slight snow", 73: "Moderate snow", 80: "Rain showers", 81: "Heavy rain showers",
+    95: "Thunderstorm", 96: "Thunderstorm with hail",
+}
 
-    # Check cache first
-    cache_key = f"{location.lower()}:{days}"
-    if cache_key in _weather_cache:
-        cached_data, cached_time = _weather_cache[cache_key]
-        if time.time() - cached_time < CACHE_TTL:
-            return cached_data
 
-    lat, lon = coords
-    params = urllib.parse.urlencode({
-        "latitude": lat,
-        "longitude": lon,
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weathercode",
-        "current_weather": "true",
-        "timezone": "auto",
-        "forecast_days": min(days, 7),
-    })
-    url = f"https://api.open-meteo.com/v1/forecast?{params}"
-
+async def _fetch_open_meteo(lat: float, lon: float, days: int) -> Optional[dict]:
+    """Try Open-Meteo API with httpx async client."""
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 KisanVaani/2.1"})
-            resp.raise_for_status()
-            data = resp.json()
-    except Exception as e:
-        # Try urllib as fallback
-        try:
-            req = urllib.request.Request(url)
-            req.add_header("User-Agent", "Mozilla/5.0")
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-        except Exception:
-            # Return cached data even if expired, rather than error
-            if cache_key in _weather_cache:
-                return _weather_cache[cache_key][0]
-            return {"error": f"Weather service temporarily unavailable. Try again in a few minutes."}
+        params = {
+            "latitude": lat, "longitude": lon,
+            "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weathercode",
+            "current_weather": "true", "timezone": "auto",
+            "forecast_days": min(days, 7),
+        }
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params=params,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; KisanVaani/2.1)"},
+            )
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        pass
+    return None
 
-    # Parse current weather
+
+async def _fetch_wttr(location: str) -> Optional[dict]:
+    """Fallback: use wttr.in weather API (works from server IPs)."""
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+            resp = await client.get(
+                f"https://wttr.in/{location}?format=j1",
+                headers={"User-Agent": "Mozilla/5.0"},
+            )
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        pass
+    return None
+
+
+def _parse_wttr_response(data: dict, location: str) -> dict:
+    """Parse wttr.in JSON format into our standard format."""
+    current = data.get("current_condition", [{}])[0]
+    forecasts = data.get("weather", [])
+
+    forecast_list = []
+    for day in forecasts[:7]:
+        forecast_list.append({
+            "date": day.get("date", ""),
+            "temp_max": float(day.get("maxtempC", 0)),
+            "temp_min": float(day.get("mintempC", 0)),
+            "rain_mm": float(day.get("totalSnow_cm", 0)) * 10,  # approximate
+            "rain_chance": int(day.get("hourly", [{}])[4].get("chanceofrain", 0)) if day.get("hourly") else 0,
+            "condition": day.get("hourly", [{}])[4].get("weatherDesc", [{}])[0].get("value", "Unknown") if day.get("hourly") else "Unknown",
+        })
+
+    return {
+        "location": location,
+        "current": {
+            "temperature": float(current.get("temp_C", 0)),
+            "condition": current.get("weatherDesc", [{}])[0].get("value", "Unknown"),
+            "windspeed": float(current.get("windspeedKmph", 0)),
+        },
+        "forecast": forecast_list,
+    }
+
+
+def _parse_open_meteo_response(data: dict, location: str) -> dict:
+    """Parse Open-Meteo response into our standard format."""
     current = data.get("current_weather", {})
     daily = data.get("daily", {})
-
-    weather_codes = {
-        0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-        45: "Foggy", 51: "Light drizzle", 53: "Moderate drizzle", 55: "Dense drizzle",
-        61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
-        71: "Slight snow", 73: "Moderate snow", 80: "Rain showers", 81: "Heavy rain showers",
-        95: "Thunderstorm", 96: "Thunderstorm with hail",
-    }
 
     forecast = []
     dates = daily.get("time", [])
@@ -102,22 +127,54 @@ async def get_weather(location: str, days: int = 3) -> dict:
             "temp_min": daily["temperature_2m_min"][i],
             "rain_mm": daily["precipitation_sum"][i],
             "rain_chance": daily["precipitation_probability_max"][i],
-            "condition": weather_codes.get(daily["weathercode"][i], "Unknown"),
+            "condition": WEATHER_CODES.get(daily["weathercode"][i], "Unknown"),
         })
 
-    result = {
+    return {
         "location": location,
         "current": {
             "temperature": current.get("temperature"),
-            "condition": weather_codes.get(current.get("weathercode", 0), "Unknown"),
+            "condition": WEATHER_CODES.get(current.get("weathercode", 0), "Unknown"),
             "windspeed": current.get("windspeed"),
         },
         "forecast": forecast,
     }
 
-    # Cache the result
-    _weather_cache[cache_key] = (result, time.time())
-    return result
+
+async def get_weather(location: str, days: int = 3) -> dict:
+    """Get weather forecast with fallback chain: Open-Meteo -> wttr.in -> cache."""
+    coords = _get_coords(location)
+    if not coords:
+        return {"error": f"Location '{location}' not found. Try: Pune, Nagpur, Kakamega, Kano, Nairobi"}
+
+    # Check cache first
+    cache_key = f"{location.lower()}:{days}"
+    if cache_key in _weather_cache:
+        cached_data, cached_time = _weather_cache[cache_key]
+        if time.time() - cached_time < CACHE_TTL:
+            return cached_data
+
+    lat, lon = coords
+
+    # Try 1: Open-Meteo (free, no key needed)
+    data = await _fetch_open_meteo(lat, lon, days)
+    if data and "daily" in data:
+        result = _parse_open_meteo_response(data, location)
+        _weather_cache[cache_key] = (result, time.time())
+        return result
+
+    # Try 2: wttr.in (free, works from server IPs)
+    wttr_data = await _fetch_wttr(location)
+    if wttr_data and "current_condition" in wttr_data:
+        result = _parse_wttr_response(wttr_data, location)
+        _weather_cache[cache_key] = (result, time.time())
+        return result
+
+    # Try 3: Return cached data even if expired
+    if cache_key in _weather_cache:
+        return _weather_cache[cache_key][0]
+
+    return {"error": "Weather service temporarily unavailable. Try again in a few minutes."}
 
 
 def format_weather_for_context(weather: dict) -> str:
