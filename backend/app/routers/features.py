@@ -22,8 +22,8 @@ router = APIRouter(prefix="/api", tags=["features"])
 @router.get("/weather/{location}")
 async def weather_forecast(location: str, days: int = 3):
     result = await get_weather(location, days)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
+    # Return error as 200 with error field so frontend can display it
+    # (404 causes frontend to show nothing)
     return result
 
 

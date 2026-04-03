@@ -122,7 +122,12 @@ export default function FeaturesPage() {
             {weatherQuery.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Get Weather'}
           </button>
         </div>
-        {weatherQuery.data && (
+        {weatherQuery.data?.error && (
+          <div className="bg-red-50 rounded-lg p-4 text-sm text-red-700">
+            {weatherQuery.data.error}
+          </div>
+        )}
+        {weatherQuery.data && !weatherQuery.data.error && (
           <div className="bg-blue-50 rounded-lg p-4 text-sm">
             <p className="font-medium">Now: {weatherQuery.data.current?.temperature}°C, {weatherQuery.data.current?.condition}</p>
             <div className="mt-2 space-y-1">
@@ -130,6 +135,11 @@ export default function FeaturesPage() {
                 <p key={d.date}>{d.date}: {d.temp_min}-{d.temp_max}°C | Rain: {d.rain_chance}% | {d.condition}</p>
               ))}
             </div>
+          </div>
+        )}
+        {weatherQuery.isError && (
+          <div className="bg-red-50 rounded-lg p-4 text-sm text-red-700">
+            Weather service temporarily unavailable. Try again in a few minutes.
           </div>
         )}
       </Section>

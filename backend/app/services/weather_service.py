@@ -63,15 +63,23 @@ async def get_weather(location: str, days: int = 3) -> dict:
     url = f"https://api.open-meteo.com/v1/forecast?{params}"
 
     try:
-        req = urllib.request.Request(url)
-        req.add_header("User-Agent", "KisanVaani/2.1")
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        import httpx
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 KisanVaani/2.1"})
+            resp.raise_for_status()
+            data = resp.json()
     except Exception as e:
-        # Return cached data even if expired, rather than error
-        if cache_key in _weather_cache:
-            return _weather_cache[cache_key][0]
-        return {"error": f"Weather API temporarily unavailable. Try again in a few minutes."}
+        # Try urllib as fallback
+        try:
+            req = urllib.request.Request(url)
+            req.add_header("User-Agent", "Mozilla/5.0")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except Exception:
+            # Return cached data even if expired, rather than error
+            if cache_key in _weather_cache:
+                return _weather_cache[cache_key][0]
+            return {"error": f"Weather service temporarily unavailable. Try again in a few minutes."}
 
     # Parse current weather
     current = data.get("current_weather", {})
