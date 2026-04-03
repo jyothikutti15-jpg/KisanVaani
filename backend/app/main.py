@@ -200,3 +200,21 @@ def get_countries():
         code: {"name": data["name"], "languages": data["languages"], "currency": data["currency"]}
         for code, data in countries.items()
     }
+
+
+# Serve frontend static files in production (when built with npm run build)
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse as _FileResponse
+
+_static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.isdir(_static_dir):
+    app.mount("/assets", StaticFiles(directory=os.path.join(_static_dir, "assets")), name="static-assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve frontend for all non-API routes (SPA fallback)."""
+        file_path = os.path.join(_static_dir, full_path)
+        if os.path.isfile(file_path):
+            return _FileResponse(file_path)
+        return _FileResponse(os.path.join(_static_dir, "index.html"))

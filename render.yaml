@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: kisanvaani
+    runtime: python
+    buildCommand: "chmod +x render-build.sh && ./render-build.sh"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: MOCK_MODE
+        value: "true"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: '["*"]'
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: NODE_VERSION
+        value: "20"
+    healthCheckPath: /api/health
+    plan: free
