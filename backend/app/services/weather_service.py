@@ -161,39 +161,38 @@ def _parse_open_meteo_response(data: dict, location: str) -> dict:
 
 
 async def get_weather(location: str, days: int = 3) -> dict:
-    """Get weather forecast with fallback chain: Open-Meteo -> wttr.in -> cache."""
-    coords = _get_coords(location)
-    if not coords:
-        return {"error": f"Location '{location}' not found. Try: Mumbai, Pune, Delhi, Nagpur, Nashik, Hyderabad, Chennai, Bangalore, Nairobi, Kakamega, Kano, Lagos, Addis Ababa"}
+    """Get weather for ANY location. Uses wttr.in (accepts any city name worldwide)
+    with Open-Meteo as secondary source for known coordinates."""
 
     # Check cache first
-    cache_key = f"{location.lower()}:{days}"
+    cache_key = f"{location.lower().strip()}:{days}"
     if cache_key in _weather_cache:
         cached_data, cached_time = _weather_cache[cache_key]
         if time.time() - cached_time < CACHE_TTL:
             return cached_data
 
-    lat, lon = coords
-
-    # Try 1: Open-Meteo (free, no key needed)
-    data = await _fetch_open_meteo(lat, lon, days)
-    if data and "daily" in data:
-        result = _parse_open_meteo_response(data, location)
-        _weather_cache[cache_key] = (result, time.time())
-        return result
-
-    # Try 2: wttr.in (free, works from server IPs)
+    # Try 1: wttr.in — accepts ANY city/village name worldwide (best for unknown locations)
     wttr_data = await _fetch_wttr(location)
     if wttr_data and "current_condition" in wttr_data:
         result = _parse_wttr_response(wttr_data, location)
         _weather_cache[cache_key] = (result, time.time())
         return result
 
+    # Try 2: Open-Meteo with known coordinates (fallback)
+    coords = _get_coords(location)
+    if coords:
+        lat, lon = coords
+        data = await _fetch_open_meteo(lat, lon, days)
+        if data and "daily" in data:
+            result = _parse_open_meteo_response(data, location)
+            _weather_cache[cache_key] = (result, time.time())
+            return result
+
     # Try 3: Return cached data even if expired
     if cache_key in _weather_cache:
         return _weather_cache[cache_key][0]
 
-    return {"error": "Weather service temporarily unavailable. Try again in a few minutes."}
+    return {"error": f"Could not fetch weather for '{location}'. Try a different spelling or a nearby city name."}
 
 
 def format_weather_for_context(weather: dict) -> str:

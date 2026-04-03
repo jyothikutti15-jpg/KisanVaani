@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import api from '../api/client';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const COUNTRIES = [
   { code: 'IN', name: 'India', flag: '🇮🇳' },
@@ -106,20 +107,22 @@ export default function FeaturesPage() {
     enabled: false,
   });
 
+  const { t } = useLanguage();
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">All Features</h1>
-      <p className="text-gray-500 mb-6">Test every KisanVaani feature with live data</p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('features.title')}</h1>
+      <p className="text-gray-500 mb-6">{t('features.subtitle')}</p>
 
       {/* 1. WEATHER */}
-      <Section title="Live Weather Forecast" icon={CloudSun} color="bg-blue-50 text-blue-600">
+      <Section title={t('features.weather')} icon={CloudSun} color="bg-blue-50 text-blue-600">
         <div className="flex gap-2 mb-3">
           <input value={weatherCity} onChange={e => setWeatherCity(e.target.value)}
-            placeholder="City name (Sehore, Kakamega, Kano...)"
+            placeholder={t('features.weather_placeholder')}
             className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
           <button onClick={() => weatherQuery.refetch()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-            {weatherQuery.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Get Weather'}
+            {weatherQuery.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : t('features.get_weather')}
           </button>
         </div>
         {weatherQuery.data?.error && (
