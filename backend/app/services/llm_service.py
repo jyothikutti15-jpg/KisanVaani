@@ -148,10 +148,14 @@ class LLMService:
         messages.append({"role": "user", "content": content})
 
         try:
-            return await self._call_claude(messages, SYSTEM_PROMPT)
+            result = await self._call_claude(messages, SYSTEM_PROMPT)
+            logger.info(f"Claude AI responded: {len(result)} chars")
+            return result
         except Exception as e:
-            logger.error(f"LLM call failed after retries: {e}")
-            return MOCK_RESPONSES.get(language, MOCK_RESPONSES["en"])
+            logger.error(f"LLM call failed after retries: {type(e).__name__}: {e}")
+            # Return mock with a note so we can tell it's a fallback
+            mock = MOCK_RESPONSES.get(language, MOCK_RESPONSES["en"])
+            return f"[AI temporarily unavailable — showing sample response]\n\n{mock}"
 
     def extract_expense(self, ai_response: str) -> dict | None:
         """Extract expense JSON from AI response if present."""

@@ -184,6 +184,25 @@ def health():
     }
 
 
+@app.get("/api/test-ai")
+async def test_ai():
+    """Test if Claude AI is working. Returns real AI response or error details."""
+    from app.services.llm_service import llm_service
+    if settings.MOCK_MODE:
+        return {"status": "mock_mode", "message": "MOCK_MODE is true — AI calls are disabled"}
+    if not llm_service.client:
+        return {"status": "no_client", "message": "Anthropic client not initialized — check ANTHROPIC_API_KEY"}
+    try:
+        response = await llm_service.client.messages.create(
+            model=settings.CLAUDE_MODEL,
+            max_tokens=50,
+            messages=[{"role": "user", "content": "Say 'KisanVaani AI is working' in exactly those words."}],
+        )
+        return {"status": "ok", "response": response.content[0].text, "model": settings.CLAUDE_MODEL}
+    except Exception as e:
+        return {"status": "error", "error_type": type(e).__name__, "message": str(e)}
+
+
 @app.get("/api/languages")
 def get_languages():
     return {

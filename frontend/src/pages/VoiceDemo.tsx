@@ -57,11 +57,31 @@ export default function VoiceDemo() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Speak text using browser SpeechSynthesis (free, no API key)
+  // Speak text using browser SpeechSynthesis with best available voice
   const speakResponse = (text: string, lang: string) => {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = SPEECH_LANG_MAP[lang] || 'en-IN';
-    utterance.rate = 0.9;
+    const targetLang = SPEECH_LANG_MAP[lang] || 'en-IN';
+    utterance.lang = targetLang;
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
+
+    // Try to find the best voice for this language
+    const voices = window.speechSynthesis.getVoices();
+    const langPrefix = targetLang.split('-')[0]; // "te" from "te-IN"
+
+    // Prefer: Google > Microsoft > any matching voice
+    const googleVoice = voices.find(v => v.lang.startsWith(langPrefix) && v.name.includes('Google'));
+    const femaleVoice = voices.find(v => v.lang.startsWith(langPrefix) && (v.name.includes('Female') || v.name.includes('Lakshmi') || v.name.includes('Lekha')));
+    const anyVoice = voices.find(v => v.lang.startsWith(langPrefix));
+
+    const bestVoice = googleVoice || femaleVoice || anyVoice;
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+    }
+
     window.speechSynthesis.speak(utterance);
   };
 
